@@ -3,7 +3,6 @@ import util.InputUtil;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.MatchResult;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Day1 {
@@ -63,6 +62,8 @@ public class Day1 {
         return nums.get(0) + nums.get(nums.size()-1);
     }
 
+    // This doesn't effing allow `twone` to count as two hits - `two` and `one`. I cannot find a flag that forces
+    // the matcher to find every consecutive character match. >:(
     private static String getConcatFirstLastNumber2(final String str) {
         final String mapKeys = LOOKUP.keySet().stream().reduce("", (acc, s) -> acc + "|" + s);
         final List<String> nums = Pattern.compile("\\d" + mapKeys)
