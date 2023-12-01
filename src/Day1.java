@@ -64,7 +64,8 @@ public class Day1 {
             PATTERN_DAY_2.matcher(substr)
                     .results()
                     .map(MatchResult::group)
-                    .forEach(nums::add);
+                    .findFirst()
+                    .ifPresent(nums::add);
         }
         final String first = GOOD_LOOKUP.apply(nums.get(0));
         final String last = GOOD_LOOKUP.apply(nums.get(nums.size()-1));
