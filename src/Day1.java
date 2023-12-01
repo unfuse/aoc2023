@@ -1,20 +1,13 @@
 import util.InputUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.UnaryOperator;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
 public class Day1 {
-
-    private static final String TEST = """
-            two1nine
-            eightwothree
-            abcone2threexyz
-            xtwone3four
-            4nineeightseven2
-            zoneight234
-            7pqrstsixteen""";
 
     private static final Map<String, String> LOOKUP = Map.of(
             "one", "1",
@@ -27,34 +20,35 @@ public class Day1 {
             "eight", "8",
             "nine", "9");
 
+    private static final UnaryOperator<String> GOOD_LOOKUP = str -> LOOKUP.getOrDefault(str, str);
+
+    private static final  String MAP_KEYS = LOOKUP
+            .keySet()
+            .stream()
+            .reduce("", (acc, s) -> acc + "|" + s);
+    private static final Pattern PATTERN_DAY_1 = Pattern.compile("\\d");
+    private static final Pattern PATTERN_DAY_2 = Pattern.compile("\\d" + MAP_KEYS);
+
+    private Day1() {
+    }
+
     public static void main(final String[] args) {
-        part2();
+        final List<String> input = InputUtil.lines("day01");
+        doPart(input, Day1::easierConcatFirstLastNumber);
+        doPart(input, Day1::harderConcatFirstLastNumber);
     }
 
-    public static void part1() {
-        final List<String> input = InputUtil.lines("day01");
-
+    static void doPart(final List<String> input, final UnaryOperator<String> parser) {
         final var result = input.stream()
-                .map(Day1::getConcatFirstLastNumber)
+                .map(parser)
                 .mapToInt(Integer::valueOf)
                 .sum();
 
         System.out.println(result);
     }
 
-    public static void part2() {
-        final List<String> input = InputUtil.lines("day01");
-
-        final var result = input.stream()
-                .map(Day1::getConcatFirstLastNumber2)
-                .mapToInt(Integer::valueOf)
-                .sum();
-
-        System.out.println(result);
-    }
-
-    private static String getConcatFirstLastNumber(final String str) {
-        final List<String> nums = Pattern.compile("\\d")
+    private static String easierConcatFirstLastNumber(final String str) {
+        final List<String> nums = PATTERN_DAY_1
                 .matcher(str)
                 .results()
                 .map(MatchResult::group)
@@ -62,17 +56,18 @@ public class Day1 {
         return nums.get(0) + nums.get(nums.size()-1);
     }
 
-    // This doesn't effing allow `twone` to count as two hits - `two` and `one`. I cannot find a flag that forces
-    // the matcher to find every consecutive character match. >:(
-    private static String getConcatFirstLastNumber2(final String str) {
-        final String mapKeys = LOOKUP.keySet().stream().reduce("", (acc, s) -> acc + "|" + s);
-        final List<String> nums = Pattern.compile("\\d" + mapKeys)
-                .matcher(str)
-                .results()
-                .map(MatchResult::group)
-                .toList();
-        final String first = LOOKUP.getOrDefault(nums.get(0), nums.get(0));
-        final String last = LOOKUP.getOrDefault(nums.get(nums.size()-1), nums.get(nums.size()-1));
+    private static String harderConcatFirstLastNumber(final String str) {
+        final int strLen = str.length();
+        final List<String> nums = new ArrayList<>();
+        for (int i = 0; i < strLen; i++) {
+            final String substr = str.substring(i);
+            PATTERN_DAY_2.matcher(substr)
+                    .results()
+                    .map(MatchResult::group)
+                    .forEach(nums::add);
+        }
+        final String first = GOOD_LOOKUP.apply(nums.get(0));
+        final String last = GOOD_LOOKUP.apply(nums.get(nums.size()-1));
         return first + last;
     }
 }
