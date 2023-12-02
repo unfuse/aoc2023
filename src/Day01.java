@@ -7,7 +7,7 @@ import java.util.function.UnaryOperator;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
-public class Day1 {
+public class Day01 {
 
     private static final Map<String, String> LOOKUP = Map.of(
             "one", "1",
@@ -29,13 +29,13 @@ public class Day1 {
     private static final Pattern PATTERN_DAY_1 = Pattern.compile("\\d");
     private static final Pattern PATTERN_DAY_2 = Pattern.compile("\\d" + MAP_KEYS);
 
-    private Day1() {
+    private Day01() {
     }
 
     public static void main(final String[] args) {
         final List<String> input = InputUtil.lines("day01");
-        doPart(input, Day1::easierConcatFirstLastNumber);
-        doPart(input, Day1::harderConcatFirstLastNumber);
+        doPart(input, Day01::easierConcatFirstLastNumber);
+        doPart(input, Day01::harderConcatFirstLastNumber);
     }
 
     static void doPart(final List<String> input, final UnaryOperator<String> parser) {
