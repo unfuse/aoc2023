@@ -36,5 +36,7 @@ public class GridTest {
         assert grid.getMaxX() == 1;
         assert grid.getMinY() == 0;
         assert grid.getMaxY() == 3;
+        assert grid.keySet().stream().flatMap(TwoDimIntPoint::stream).anyMatch(dim -> dim > -6);
+        assert !grid.keySet().stream().flatMap(TwoDimIntPoint::stream).allMatch(dim -> dim > 0);
     }
 }
