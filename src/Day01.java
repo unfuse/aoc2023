@@ -21,13 +21,9 @@ public class Day01 {
             "nine", "9");
 
     private static final UnaryOperator<String> GOOD_LOOKUP = str -> LOOKUP.getOrDefault(str, str);
-
-    private static final  String MAP_KEYS = LOOKUP
-            .keySet()
-            .stream()
-            .reduce("", (acc, s) -> acc + "|" + s);
+    private static final String MAP_KEYS = String.join("|", LOOKUP.keySet());
     private static final Pattern PATTERN_DAY_1 = Pattern.compile("\\d");
-    private static final Pattern PATTERN_DAY_2 = Pattern.compile("\\d" + MAP_KEYS);
+    private static final Pattern PATTERN_DAY_2 = Pattern.compile("\\d|" + MAP_KEYS);
 
     private Day01() {
     }
