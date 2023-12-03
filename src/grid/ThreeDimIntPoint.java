@@ -59,9 +59,9 @@ public record ThreeDimIntPoint(int x, int y, int z)
     @Override
     public int compareTo(final ThreeDimIntPoint o) {
         return Comparator
-                .comparingInt(ThreeDimIntPoint::x)
+                .comparingInt(ThreeDimIntPoint::z)
                 .thenComparingInt(ThreeDimIntPoint::y)
-                .thenComparingInt(ThreeDimIntPoint::z)
+                .thenComparingInt(ThreeDimIntPoint::x)
                 .compare(this, o);
     }
 

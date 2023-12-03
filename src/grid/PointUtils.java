@@ -10,6 +10,6 @@ class PointUtils {
     }
 
     static <P extends Point<Integer>> boolean isOrthogonal(final P p1, final P p2) {
-        return p1.minus(p2).stream().allMatch(dim -> dim <= 1);
+        return p1.minus(p2).stream().map(Math::abs).allMatch(dim -> dim <= 1);
     }
 }

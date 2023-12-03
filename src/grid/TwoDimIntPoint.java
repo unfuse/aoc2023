@@ -58,8 +58,8 @@ public record TwoDimIntPoint(int x, int y)
     @Override
     public int compareTo(final TwoDimIntPoint o) {
         return Comparator
-                .comparingInt(TwoDimIntPoint::x)
-                .thenComparingInt(TwoDimIntPoint::y)
+                .comparingInt(TwoDimIntPoint::y)
+                .thenComparingInt(TwoDimIntPoint::x)
                 .compare(this, o);
     }
 
