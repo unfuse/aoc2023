@@ -21,6 +21,15 @@ public class InputUtil {
         }
     }
 
+    public static String file(final String day) {
+        try {
+            return Files.readString(Path.of("inputs/" + day + ".txt"));
+        }
+        catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static Stream<String> splitStream(final String string, final String needle) {
         return Stream.of(string.split(needle)).map(String::trim);
     }
