@@ -26,10 +26,10 @@ public abstract class BaseGrid<T, P extends Point<T> & Comparable<P>, N>
                 });
     }
 
-    protected static <T, P extends Point<T> & Comparable<P>, N, G extends Grid<T, P, N>> Collector<Grid.Pair<T, P, N>, ?, G> createCollector(
+    protected static <T, P extends Point<T> & Comparable<P>, N, G extends Grid<T, P, N>> Collector<util.Pair<P, N>, ?, G> createCollector(
             final Supplier<G> ctor) {
         return Collector.of(ctor,
-                (acc, pair) -> acc.put(pair.point(), pair.value()),
+                (acc, pair) -> acc.put(pair.left(), pair.right()),
                 (g1, g2) -> {
                     g1.putAll(g2);
                     return g1;

@@ -57,11 +57,4 @@ public interface Grid<T, P extends Point<T> & Comparable<P>, N>
     default Optional<N> maybeGet(final P point) {
         return Optional.ofNullable(get(point));
     }
-
-    /**
-     * Utility entry-like class to support pairing a {@code point} and a {@code node}.
-     * Intended to help create Grids, because {@link Map#entry(Object, Object)} does not permit null values
-     */
-    record Pair<T, P extends Point<T> & Comparable<P>, N>(P point, N value) {
-    }
 }

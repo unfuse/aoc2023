@@ -85,7 +85,7 @@ public class TwoDimIntGrid<N>
         return createCollector(TwoDimIntGrid::new, defaultNode);
     }
 
-    public static <N> Collector<Grid.Pair<Integer, TwoDimIntPoint, N>, ?, TwoDimIntGrid<N>> pairCollector() {
+    public static <N> Collector<util.Pair<TwoDimIntPoint, N>, ?, TwoDimIntGrid<N>> pairCollector() {
         return createCollector(TwoDimIntGrid::new);
     }
 }

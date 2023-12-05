@@ -92,7 +92,7 @@ public class ThreeDimIntGrid<N>
         return createCollector(ThreeDimIntGrid::new, defaultNode);
     }
 
-    public static <N> Collector<Pair<Integer, ThreeDimIntPoint, N>, ?, ThreeDimIntGrid<N>> pairCollector() {
+    public static <N> Collector<util.Pair<ThreeDimIntPoint, N>, ?, ThreeDimIntGrid<N>> pairCollector() {
         return createCollector(ThreeDimIntGrid::new);
     }
 }

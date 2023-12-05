@@ -1,8 +1,8 @@
-import grid.Grid;
 import grid.Point;
 import grid.TwoDimIntGrid;
 import grid.TwoDimIntPoint;
 import util.InputUtil;
+import util.Pair;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.flatMapping;
 import static java.util.stream.Collectors.groupingBy;
@@ -86,7 +86,7 @@ public class Day03 {
                 .flatMap(line -> {
                     final var x = new AtomicInteger();
                     final var newLine = Stream.of(line.split(""))
-                            .map(cell -> new Grid.Pair<>(Point.of(x.getAndIncrement(), y.get()), cell))
+                            .map(cell -> new Pair<>(Point.of(x.getAndIncrement(), y.get()), cell))
                             .collect(toSet());
                     y.getAndIncrement();
                     return newLine.stream();

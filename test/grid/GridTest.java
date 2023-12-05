@@ -1,5 +1,7 @@
 package grid;
 
+import util.Pair;
+
 import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
@@ -18,7 +20,7 @@ public class GridTest {
                 .lines()
                 .map(line -> {
                     final String[] split = line.trim().split("\\s");
-                    return new Grid.Pair<>(
+                    return new Pair<>(
                             Point.of(
                                     Integer.parseInt(split[0]),
                                     Integer.parseInt(split[1])),
