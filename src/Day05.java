@@ -68,6 +68,7 @@ public class Day05 {
         System.out.printf("Part 2 (in %d minutes): %s%n", numMinutes, solution.right().get(Type.LOCATION));
     }
 
+    // Parse input
     static Pair<List<Long>, Almanac> parseInput(final String input) {
         final var stuff = SEED_LIST_PATTERN.matcher(input).results().findFirst().orElseThrow();
         final List<Long> seeds = InputUtil.splitStream(stuff.group(1), "\\s").map(Long::parseLong).toList();
@@ -76,16 +77,18 @@ public class Day05 {
         return new Pair<>(seeds, almanac);
     }
 
+    // Parse Almanac
     static Almanac parseAlmanac(final String input) {
         return InputUtil.splitStream(input, "\\n\\n")
                 .map(Day05::parseAMap)
                 .collect(collectingAndThen(toList(), Almanac::from));
     }
 
+    // Parse Almanac Maps
     static AMap parseAMap(final String input) {
         final var stuff = ALMANAC_MAP_PATTERN.matcher(input).results().findFirst().orElseThrow();
         final Type srcType = Type.valueOf(stuff.group(1).toUpperCase());
-        final Type destType = Type.valueOf(stuff.group(2).toUpperCase());
+        // final Type destType = Type.valueOf(stuff.group(2).toUpperCase());
 
         final Collection<Entry> entries = stuff.group(3).lines()
                 .map(Day05::parseEntry)
@@ -94,6 +97,7 @@ public class Day05 {
         return AMap.from(srcType, entries);
     }
 
+    // Parse Almanac Entries
     static Entry parseEntry(final String input) {
         final var stuff = ENTRY_PATTERN.matcher(input).results().findFirst().orElseThrow();
         return Entry.from(
@@ -102,6 +106,7 @@ public class Day05 {
                 Long.parseLong(stuff.group(3)));
     }
 
+    // Perform a seed test
     static Map<Type, Long> testSeed(final Almanac almanac, final long test) {
         final Map<Type, Long> res = new EnumMap<>(Type.class);
         res.put(Type.SEED, test);
@@ -109,7 +114,11 @@ public class Day05 {
         return res;
     }
 
-    static void testRecur(final Almanac almanac, final Type curType, final long test, final Map<Type, Long> res) {
+    // Recursive helper
+    private static void testRecur(final Almanac almanac,
+                                  final Type curType,
+                                  final long test,
+                                  final Map<Type, Long> res) {
         if (curType.hasNext()) {
             final Type next = curType.next();
             final long val = almanac.eval(curType, test);
@@ -118,12 +127,16 @@ public class Day05 {
         }
     }
 
+    // Pretty print
     static void printSolution(final Map<Type, Long> solution) {
         System.out.println(Stream.of(Type.values())
                 .map(t -> "%s %d".formatted(t, solution.get(t)))
                 .collect(joining(", ")));
     }
 
+    /**
+     * Almanac of tables keyed by their SRC type
+     */
     record Almanac(Map<Type, AMap> almanacMaps) {
 
         long eval(final Type type, final long test) {
@@ -135,7 +148,10 @@ public class Day05 {
         }
     }
 
-    record AMap(Type destType, Collection<Entry> entryByDest, Type srcType, Collection<Entry> entryBySrc) {
+    /**
+     * Almanac Map with entries cached for optimal lookup
+     */
+    record AMap(Type srcType, Collection<Entry> entryBySrc) {
 
         long eval(final long test) {
             return this.entryBySrc.stream()
@@ -146,12 +162,14 @@ public class Day05 {
         }
 
         static AMap from(final Type srcType, final Collection<Entry> entries) {
-            return new AMap(srcType.next(), entries.stream().sorted(Comparator.comparing(Entry::dest)).toList(),
-                    srcType, entries.stream().sorted(Comparator.comparing(Entry::src)).toList()
+            return new AMap(srcType, entries.stream().sorted(Comparator.comparing(Entry::src)).toList()
             );
         }
     }
 
+    /**
+     * Almanac entry with src and dest ranges
+     */
     record Entry(Range dest, Range src, long length) {
 
         boolean test(final long test) {
@@ -167,6 +185,9 @@ public class Day05 {
         }
     }
 
+    /**
+     * Description of an inclusive start to exclusive range object for use in Almanac Entries
+     */
     record Range(long start, long end)
             implements Comparable<Range> {
 
