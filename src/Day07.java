@@ -4,11 +4,12 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toSet;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -29,40 +30,39 @@ public class Day07 {
 
                     return new Play(Hand.from(cards), bid);
                 })
-                .sorted()
                 .toList();
 
         part1(plays);
+        part2(plays);
     }
 
     public static void part1(final List<Play> plays) {
-        final AtomicInteger ctr = new AtomicInteger(plays.size());
+        System.out.println("Part 1: " + doPart(plays, new Evaluator.Part1()));
+    }
+
+    public static void part2(final List<Play> plays) {
+        System.out.println("Part 2: " + doPart(plays, new Evaluator.Part2()));
+    }
+
+    private static long doPart(final List<Play> plays, final Evaluator evaluator) {
+        final AtomicLong ctr = new AtomicLong(plays.size());
 
         final long value = plays.stream()
-                .sorted()
+                .sorted(evaluator.getComparator().reversed())
                 .mapToLong(play -> play.bid * ctr.getAndDecrement())
                 .sum();
 
-        System.out.println("Part 1: " + value);
+        return value;
     }
 
-    public static void part2() {
-
-    }
-
+    // A play of the game
     record Play(Hand hand, long bid) {
-        @Override
-        public String toString() {
-            final StringBuilder sb = new StringBuilder(10);
-            sb.append(this.hand);
-            sb.append(" @ ").append(this.bid);
-            return sb.toString();
-        }
     }
 
-    record Hand(List<Card> cards, Processor processor) {
+    // A hand in the game - CardStats is a utility struct that holds cached info for evaluation
+    record Hand(List<Card> cards, CardStats cardStats) {
         static Hand from(final List<Card> cards) {
-            return new Hand(cards, Processor.from(cards));
+            return new Hand(cards, CardStats.from(cards));
         }
 
         static Comparator<Hand> getCardComp(final Comparator<Card> cardComp) {
@@ -74,6 +74,7 @@ public class Day07 {
         }
     }
 
+    // A way to evaluate if a Hand matches a certain Score criteria
     interface Evaluator {
         boolean hasPair(Hand hand);
 
@@ -93,17 +94,17 @@ public class Day07 {
                 implements Evaluator {
             @Override
             public boolean hasPair(final Hand hand) {
-                return hand.processor.contains(2);
+                return hand.cardStats.contains(2);
             }
 
             @Override
             public boolean hasPairs(final Hand hand) {
-                return hand.processor.contains(2, 2);
+                return hand.cardStats.contains(2, 2);
             }
 
             @Override
             public boolean hasThree(final Hand hand) {
-                return hand.processor.contains(3);
+                return hand.cardStats.contains(3);
             }
 
             @Override
@@ -113,17 +114,17 @@ public class Day07 {
 
             @Override
             public boolean hasFour(final Hand hand) {
-                return hand.processor.contains(4);
+                return hand.cardStats.contains(4);
             }
 
             @Override
             public boolean hasFive(final Hand hand) {
-                return hand.processor.contains(5);
+                return hand.cardStats.contains(5);
             }
 
             @Override
             public Comparator<Play> getComparator() {
-                return Comparator.<Play, Eval>comparing(play -> Eval.evaluate(this, play.hand))
+                return Comparator.<Play, Score>comparing(play -> Score.evaluate(this, play.hand))
                         .thenComparing(play -> play.hand, Hand.getCardComp(Card.STD));
             }
         }
@@ -132,58 +133,79 @@ public class Day07 {
                 implements Evaluator {
             @Override
             public boolean hasPair(final Hand hand) {
-                return hand.processor.contains(2) || hand.processor.contains(Card.JACK);
+                return hand.cardStats.contains(2) || hand.cardStats.contains(Card.JACK);
             }
 
             @Override
             public boolean hasPairs(final Hand hand) {
-                return hand.processor.contains(2, 2) || hand.processor.contains(Card.JACK, 2);
+                return hand.cardStats.contains(2, 2) || hand.cardStats.contains(Card.JACK, 2);
             }
 
             @Override
             public boolean hasThree(final Hand hand) {
-                return hand.processor.contains(3) || hasJackSupplement(hand, 3);
+                return hand.cardStats.contains(3) || hasJackSupplement(hand, 3);
             }
 
             @Override
             public boolean hasFull(final Hand hand) {
-                return false;
+                final long numJacks = hand.cardStats.count(Card.JACK);
+                if (numJacks == 0) {
+                    // Normal resolve
+                    return hand.cardStats.contains(2) && hand.cardStats.contains(3);
+                }
+
+                if (numJacks >= 4) {
+                    return true;
+                }
+
+                // if jacks >= 2 && TWOS means we can make the triple
+                if (numJacks >= 2 && hand.cardStats.containsWithout(2, Card.JACK)) {
+                    return true;
+                }
+
+                // jacks >= 1
+                return hand.cardStats.contains(3) || hand.cardStats.contains(2, 2);
             }
 
             @Override
             public boolean hasFour(final Hand hand) {
-                return hand.processor.contains(4) || hasJackSupplement(hand, 4);
+                return hand.cardStats.contains(4) || hasJackSupplement(hand, 4);
             }
 
             @Override
             public boolean hasFive(final Hand hand) {
-                return hand.processor.contains(5) || hasJackSupplement(hand, 5);
+                return hand.cardStats.contains(5) || hasJackSupplement(hand, 5);
             }
 
             private boolean hasJackSupplement(final Hand hand, final int thresh) {
-                return (hand.processor.contains(Card.JACK) && hand.processor.contains(
-                        5 - hand.processor.count(Card.JACK)));
+                return (hand.cardStats.contains(Card.JACK) && hand.cardStats.containsWithout(
+                        thresh - hand.cardStats.count(Card.JACK), Card.JACK));
             }
 
             @Override
             public Comparator<Play> getComparator() {
-                return Comparator.<Play, Eval>comparing(play -> Eval.evaluate(this, play.hand))
+                return Comparator.<Play, Score>comparing(play -> Score.evaluate(this, play.hand))
                         .thenComparing(play -> play.hand, Hand.getCardComp(Card.AS_JOKER));
             }
         }
     }
 
-    record Processor(Map<Long, Set<Card>> counter, Map<Card, Long> tracker) {
+    // Utility structure that holds
+    record CardStats(Map<Long, Set<Card>> cardsByCounts, Map<Card, Long> countPerCard) {
         boolean contains(final long key) {
-            return this.counter.containsKey(key);
+            return this.cardsByCounts.containsKey(key);
         }
 
         boolean contains(final long key, final int count) {
-            return contains(key) && this.counter.get(key).size() >= count;
+            return contains(key) && this.cardsByCounts.get(key).size() >= count;
+        }
+
+        boolean containsWithout(final long key, final Card card) {
+            return this.cardsByCounts.getOrDefault(key, Collections.EMPTY_SET).stream().anyMatch(c -> !c.equals(card));
         }
 
         boolean contains(final Card card) {
-            return this.tracker.containsKey(card);
+            return this.countPerCard.containsKey(card);
         }
 
         boolean contains(final Card card, final int count) {
@@ -191,10 +213,10 @@ public class Day07 {
         }
 
         long count(final Card card) {
-            return this.tracker.getOrDefault(card, 0L);
+            return this.countPerCard.getOrDefault(card, 0L);
         }
 
-        static Processor from(final List<Card> cards) {
+        static CardStats from(final List<Card> cards) {
             final var tracker = cards
                     .stream()
                     .collect(groupingBy(Function.identity(), counting()));
@@ -202,10 +224,11 @@ public class Day07 {
                     .stream()
                     .collect(groupingBy(Map.Entry::getValue, mapping(Map.Entry::getKey, toSet())));
 
-            return new Processor(counter, tracker);
+            return new CardStats(counter, tracker);
         }
     }
 
+    // Card ranks and their sorting nuances
     enum Card {
         TWO("2"),
         THREE("3"),
@@ -221,9 +244,10 @@ public class Day07 {
         KING("K"),
         ACE("A");
 
-        static Comparator<Card> STD = Comparator.comparingInt(Enum::ordinal);
+        static final Comparator<Card> STD = Comparator.comparingInt(Enum::ordinal);
 
-        static Comparator<Card> AS_JOKER = Comparator.comparingInt(card -> card.equals(JACK) ? -1 : card.ordinal());
+        static final Comparator<Card> AS_JOKER = Comparator.comparingInt(
+                card -> card.equals(JACK) ? -1 : card.ordinal());
 
         final String pip;
 
@@ -247,7 +271,8 @@ public class Day07 {
         }
     }
 
-    enum Eval {
+    // Score for a hand and how to evaluate it
+    enum Score {
         HIGH((eval, hand) -> true),
         PAIR(Evaluator::hasPair),
         PAIRS(Evaluator::hasPairs),
@@ -259,7 +284,7 @@ public class Day07 {
 
         private final BiPredicate<Evaluator, Hand> doesApply;
 
-        Eval(final BiPredicate<Evaluator, Hand> doesApply) {
+        Score(final BiPredicate<Evaluator, Hand> doesApply) {
             this.doesApply = doesApply;
         }
 
@@ -267,10 +292,10 @@ public class Day07 {
             return this.doesApply.test(evaluator, hand);
         }
 
-        static Eval evaluate(final Evaluator part, final Hand hand) {
+        static Score evaluate(final Evaluator part, final Hand hand) {
             return Stream.of(values())
-                    .sorted(Comparator.<Eval>comparingInt(Enum::ordinal).reversed())
-                    .filter(eval -> eval.applies(part, hand))
+                    .sorted(Comparator.<Score>comparingInt(Enum::ordinal).reversed())
+                    .filter(score -> score.applies(part, hand))
                     .findFirst()
                     .orElseThrow();
         }
